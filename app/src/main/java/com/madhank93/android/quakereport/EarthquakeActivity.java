@@ -1,8 +1,9 @@
 package com.madhank93.android.quakereport;
 
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -12,10 +13,14 @@ import android.widget.ListView;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
-public class EarthquakeActivity extends AppCompatActivity {
+public class EarthquakeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<EarthQuake>> {
 
     public static final String LOG_TAG = EarthquakeActivity.class.getName();
+    private static final int EARTHQUAKE_LOADER_ID = 1;
+
+    private EarthQuakeAdapter quakeAdapter;
 
     /** URL to query the USGS dataset for earthquake information */
     private static final String USGS_REQUEST_URL =
@@ -27,44 +32,15 @@ public class EarthquakeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.earthquake_activity);
 
-        // Creating a object for EarthQuakeAsyncTask class and executing http request, extracting JSON response
-        // in a background thread
-        new EarthQuakeAsyncTask().execute(USGS_REQUEST_URL);
-
+        // Get a reference to the LoaderManager, in order to interact with loaders.
+        LoaderManager loaderManager = getLoaderManager();
+        loaderManager.initLoader(EARTHQUAKE_LOADER_ID, null, this);
     }
 
-
-    private class EarthQuakeAsyncTask extends AsyncTask<String, Void, ArrayList<EarthQuake>> {
-
-        // Handling background job
-        @Override
-        protected ArrayList<EarthQuake> doInBackground(String... urls) {
-
-            final ArrayList<EarthQuake> earthquakes = QueryUtils.fetchEarthquakeData(urls[0]);
-
-            return earthquakes;
-        }
-
-        /**
-         * Update the screen with the given ArrayList of earthquakes object (which was the result of the
-         * {@link EarthQuakeAsyncTask}).
-         */
-        @Override
-        protected void onPostExecute(ArrayList<EarthQuake> earthquakes) {
-            if (earthquakes == null) {
-                return;
-            }
-
-            updateUi(earthquakes);
-        }
-
-
-    }
-
-    private void updateUi(final ArrayList<EarthQuake> earthquakes) {
+    private void updateUi(final List<EarthQuake> earthquakes) {
 
         // Create a new {@link ArrayAdapter} of earthquakes
-        EarthQuakeAdapter quakeAdapter = new EarthQuakeAdapter(this, earthquakes);
+        quakeAdapter = new EarthQuakeAdapter(this, earthquakes);
 
         // Set the adapter on the {@link ListView}
         // so the list can be populated in the user interface
@@ -72,6 +48,7 @@ public class EarthquakeActivity extends AppCompatActivity {
         listView.setAdapter(quakeAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -83,4 +60,25 @@ public class EarthquakeActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public Loader<List<EarthQuake>> onCreateLoader(int i, Bundle bundle) {
+        return new EarthQuakeLoader(EarthquakeActivity.this,USGS_REQUEST_URL);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<EarthQuake>> loader, List<EarthQuake> earthQuakes) {
+
+        if (quakeAdapter != null) {
+            quakeAdapter.clear();
+        }
+
+        updateUi(earthQuakes);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<EarthQuake>> loader) {
+
+        quakeAdapter.clear();
+    }
 }

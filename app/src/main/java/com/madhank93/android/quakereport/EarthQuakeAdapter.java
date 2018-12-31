@@ -8,18 +8,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.ArrayAdapter;
-import android.graphics.drawable.GradientDrawable;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 public class EarthQuakeAdapter extends ArrayAdapter<EarthQuake> {
 
     private static final String LOG_TAG = EarthQuakeAdapter.class.getSimpleName();
 
-    public EarthQuakeAdapter(Activity context, ArrayList<EarthQuake> EarthQuake) {
+    public EarthQuakeAdapter(Activity context, List<EarthQuake> EarthQuake) {
         // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
         // the second argument is used when the ArrayAdapter is populating a single TextView.
         // Because this is a custom adapter, the adapter is not
